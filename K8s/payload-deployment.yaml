@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: payload
+  namespace: depi4ops
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: payload
+
+  template:
+    metadata:
+      labels:
+        app: payload
+
+    spec:
+      containers:
+        - name: payload
+          image: depi4ops-payload:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 3000
+
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+
+          envFrom:
+            - secretRef:
+                name: payload-secret
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 6
